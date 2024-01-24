@@ -41,8 +41,8 @@ def evaluate_model(model, model_name, dataset_clean, dataset_adv, nb_class):
     avg_auc_clean, avg_auc_adv = [], []
     asr = []
     
-    adv_auc = AUROC(task="binary") if not nb_class > 2 else AUROC(task="multiclass", num_classes=nb_class, average="macro")
-    val_auc = AUROC(task="binary") if not nb_class > 2 else AUROC(task="multiclass", num_classes=nb_class, average="macro")
+    adv_auc = AUROC(task="binary") if not nb_class > 2 else AUROC(task="multiclass", num_classes=nb_class, average="weighted")
+    val_auc = AUROC(task="binary") if not nb_class > 2 else AUROC(task="multiclass", num_classes=nb_class, average="weighted")
     
     logits_clean, logits_adv  = [], []
     feat_clean, feat_adv = [], []

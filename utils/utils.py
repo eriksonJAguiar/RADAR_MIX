@@ -238,7 +238,7 @@ def load_attacked_database_df(root_path, csv_path, batch_size, image_size=(128,1
         if test_size is None:
             val = CustomDatasetFromCSV(root_path, tf_image=tf_image, csv_name=csv_path, task="Val")
             
-            val_index = np.random.choice(range(len(val)), size=100, replace=False)
+            val_index = np.random.choice(range(len(val)), size=10, replace=False)
             
             sampler_val = Subset(val, val_index)
             
@@ -351,21 +351,24 @@ def select_n_random(data, labels, classes, experiment_name, n=100):
                             label_img=images_random.unsqueeze(1))
         writer.close() 
     
-def save_all_adv_image(path_to_save, images_array, labels, db_name , attack_name, cls=["akiec","bcc","bkl","df","mel","nv","vasc"]):
+def save_all_adv_image(path_to_save, images_array, labels, db_name , attack_name, model_name, eps):
     
-    if not os.path.exists(os.path.join(path_to_save, db_name, attack_name)):
-        os.mkdir(os.path.join(path_to_save, db_name, attack_name))
+    attack_path = os.path.join(path_to_save, db_name, model_name, attack_name, eps)
     
-    for c in cls:
-        if not os.path.exists(os.path.join(path_to_save, db_name, attack_name, c)):
-            os.mkdir(os.path.join(path_to_save, db_name, attack_name, c))
+    os.makedirs(attack_path, exist_ok=True)
     
-    plt.figure(figsize=(11, 11))
-    plt.axis("off")
-    for i in range(len(images_array)):
+    # plt.figure(figsize=(11, 11))
+    # plt.axis("off")
+    # for i in range(len(images_array)):
+    #     plt.axis("off")
+    #     plt.imshow(np.transpose(make_grid(torch.Tensor(images_array[i]), normalize=True), (1, 2, 0)))
+    #     plt.savefig("{}/{}/{}/{}/{}_{}_{}.png".format(path_to_save, db_name, attack_name, cls[int(labels[i])], cls[int(labels[i])], attack_name, i), bbox_inches='tight', pad_inches=0)
+    
+    for i, (img, lb) in enumerate(zip(images_array, labels)):
         plt.axis("off")
-        plt.imshow(np.transpose(make_grid(torch.Tensor(images_array[i]), normalize=True), (1, 2, 0)))
-        plt.savefig("{}/{}/{}/{}/{}_{}_{}.png".format(path_to_save, db_name, attack_name, cls[int(labels[i])], cls[int(labels[i])], attack_name, i), bbox_inches='tight', pad_inches=0)
+        plt.imshow(np.transpose(make_grid(torch.Tensor(img), normalize=True), (1, 2, 0)))
+        plt.savefig(os.path.join(attack_path, f"attack_{i}_label_{lb}.jpg"), bbox_inches='tight', pad_inches=0)
+        #cv2.imwrite(os.path.join(attack_path, f"attack_{i}_label_{lb}.jpg"), img)
     
 def read_model_from_checkpoint(model_path, model_name, nb_class):
 

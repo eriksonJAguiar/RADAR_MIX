@@ -4,7 +4,7 @@ sys.path.append("../utils")
 import torch
 import numpy as np
 import pandas as pd
-from utils import utils
+import utils
 import os
 import time
 import evaluate
@@ -82,7 +82,6 @@ def run_attack(root_path, dataset_name, csv_path, weights_path, model_name, inpu
         
     #1st read validation dataset to attack the model
     val_attack_dataset, num_class = utils.load_attacked_database_df(root_path=root_path, csv_path=csv_path, batch_size=batch_size, image_size=input_size)
-    print(num_class)
     #2nd read models from checkpoints
     model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
     model = utils.read_model_from_checkpoint(model_path=model_path, model_name=model_name, nb_class=num_class)
