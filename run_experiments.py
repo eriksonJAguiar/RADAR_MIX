@@ -68,9 +68,9 @@ if __name__ == '__main__':
                                                                               is_logits_save=False,
                                                                               is_features_save=False)
                 
-                print(len(images))
                 model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
-                explain_module.shap_explainer(model_path=model_path, model_name=model_name, nb_class=7, images=images, labels=true_labels)
+                class_names_path = "./dataset/MelanomaDB/class_name.json"
+                explain_module.umap_visualizer(model_path=model_path, model_name=model_name, nb_class=7, images_target=images, labels_target=true_labels, class_names_path=class_names_path)
                 
                 #utils.save_all_adv_image(path_to_save="./dataset/attacks", images_array=adv_images, labels=true_labels, db_name=dataset_name, attack_name=attack_name, model_name=model_name, eps=str(eps))
                 #utils.save_all_adv_image(path_to_save="./dataset/attacks", images_array=adv_images, labels=true_labels, db_name=dataset_name, attack_name="None", model_name=model_name, eps=str(eps))

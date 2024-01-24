@@ -14,6 +14,8 @@ seaborn
 tensorboard
 balanced-loss
 adversarial-robustness-toolbox
-umap
+umap-learn
 grad-cam
 shap
+lime
+scikit-image
