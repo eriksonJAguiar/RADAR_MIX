@@ -28,29 +28,68 @@ def __get_layer(model, model_name):
     elif model_name == "inceptionv3":
         layer = [model.Mixed_7c]
     elif model_name == "efficientnet":
-        layer = [model._blocks[17]]
+        layer = [model.features[7][0].block[0]]
     elif model_name == "densenet":
         layer = [model.features.denseblock4.denselayer16.conv2]
     
     return layer
 
-def shap_explainer(model_path, model_name, nb_class, images):
+def shap_explainer(model_path, model_name, nb_class, images, labels):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    def nhwc_to_nchw(x: torch.Tensor) -> torch.Tensor:
+        if x.dim() == 4:
+            x = x if x.shape[1] == 3 else x.permute(0, 3, 1, 2)
+        elif x.dim() == 3:
+            x = x if x.shape[0] == 3 else x.permute(2, 0, 1)
+        return x
+    
     model_trianed = utils.read_model_from_checkpoint(model_path, model_name, nb_class)
+    model_trianed = model_trianed.to(device)
     model_trianed.eval() 
     
-    preprocess = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    def predict(img: np.ndarray) -> torch.Tensor:
+        img = nhwc_to_nchw(torch.Tensor(img))
+        img = img.to(device)
+        output = model_trianed(img)
+        return output
+
+
+    classes = np.unique(labels)
     
-    input_images = preprocess(images).unsqueeze(0)
+    input_image_data = torch.from_numpy(images)
+    input_image_data = torch.clip(input_image_data, 0, 1).to(device)
+    #input_image = np.clip(input_image, 0, 1)
+    #input_tensor = torch.from_numpy(input_image).unsqueeze(0).float().to(device)
     
-    xai_shap  = shap.DeepExplainer(model_trianed, data=input_images[-10:-1])
+    print(input_image_data[0].shape)
     
-    shap_values = xai_shap.shap_values(input_images[0])
+    masker_blur = shap.maskers.Image("blur(224,224)", input_image_data[0].shape)
+    explainer = shap.Explainer(predict, masker_blur, output_names=classes)
     
-    print(shap_values)
+    
+    shap_values = explainer(
+        input_image_data[0],
+        max_evals=1000,
+        batch_size=32,
+        outputs=0,
+    )
+    
+    shap_values.data = shap_values.data.cpu().numpy()[0]
+    shap_values.values = [val for val in np.moveaxis(shap_values.values[0], -1, 0)]
+    
+    print(shap_values.data)
+    print(shap_values.values)
+    
+    shap.image_plot(
+        shap_values=shap_values.values,
+        pixel_values=shap_values.data,
+        labels=shap_values.output_names,
+        true_labels=[labels[0]],
+    )
+    plt.savefig("shap_image_plot.png")
+    
+    # print(shap_values)
     
 
 def grad_cam_explainer(model_path, model_name, nb_class, images, labels):

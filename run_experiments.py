@@ -42,7 +42,7 @@ if __name__ == '__main__':
     #2nd define parameters
     batch_size = 32
     lr = 0.001
-    models = ["efficientnet"] #["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
+    models = ["resnet50"] #["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
     attacks = ["FGSM"] #["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW"] 
     epsilons = [0.5] #[0.001, 0.01, 0.05, 0.1, 0.5]
     
@@ -70,7 +70,7 @@ if __name__ == '__main__':
                 
                 print(len(images))
                 model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
-                explain_module.grad_cam_explainer(model_path=model_path, model_name=model_name, nb_class=7, images=images, labels=true_labels)
+                explain_module.shap_explainer(model_path=model_path, model_name=model_name, nb_class=7, images=images, labels=true_labels)
                 
                 #utils.save_all_adv_image(path_to_save="./dataset/attacks", images_array=adv_images, labels=true_labels, db_name=dataset_name, attack_name=attack_name, model_name=model_name, eps=str(eps))
                 #utils.save_all_adv_image(path_to_save="./dataset/attacks", images_array=adv_images, labels=true_labels, db_name=dataset_name, attack_name="None", model_name=model_name, eps=str(eps))
