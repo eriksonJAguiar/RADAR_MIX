@@ -155,7 +155,7 @@ def grad_cam_explainer(model_path, model_name, nb_class, image_target, label_tar
         plt.figure(figsize=(4,6))
         plt.imshow(grayscale_cam, cmap='viridis')
         plt.axis('off')
-        plt.savefig(os.path.join(save_path_cam, f"cam_attack_saliency_label_{class_names[label_target]}") if is_attack else f"cam_saliency_label_{class_names[label_target]}", bbox_inches = 'tight', pad_inches=0, dpi = 300)
+        plt.savefig(os.path.join(save_path_cam, f"cam_attac_saliency_label_{class_names[label_target]}" if is_attack else f"cam_saliency_label_{class_names[label_target]}"), bbox_inches = 'tight', pad_inches=0, dpi = 300)
         
     return input_image.transpose(1, 2, 0), visualization, grayscale_cam
     
@@ -330,7 +330,7 @@ def run_explainer(weights_path, model_name, dataset_name, images_target, images_
         _, shap_scores = shap_explainer(model_path=model_path, 
                                         model_name=model_name, 
                                         image_target=x,
-                                        background_imgs=images_target, 
+                                        background_imgs=images_target[:32], 
                                         label_target=y, 
                                         nb_class=nb_class, 
                                         class_names_path=class_names_path,
@@ -340,7 +340,7 @@ def run_explainer(weights_path, model_name, dataset_name, images_target, images_
         _, shap_scores_adv = shap_explainer(model_path=model_path, 
                                                 model_name=model_name, 
                                                 image_target=x_adv,
-                                                background_imgs=images_adv_target, 
+                                                background_imgs=images_adv_target[:32], 
                                                 label_target=y, 
                                                 nb_class=nb_class, 
                                                 class_names_path=class_names_path,
