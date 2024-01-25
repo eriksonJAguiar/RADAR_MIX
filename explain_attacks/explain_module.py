@@ -1,11 +1,13 @@
 import json
 import sys
 sys.path.append("../utils")
+sys.path.append("./evaluate_explaination")
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import os
+import cv2
 
 import shap
 import utils
@@ -41,7 +43,7 @@ def __get_layer(model, model_name):
     
     return layer
 
-def shap_explainer(model_path, model_name, nb_class, image_target, label_target, class_names_path, save_path_shap=None):
+def shap_explainer(model_path, model_name, nb_class, image_target, background_imgs, label_target, class_names_path, save_path_shap=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     model_trianed = utils.read_model_from_checkpoint(model_path, model_name, nb_class)
@@ -53,7 +55,7 @@ def shap_explainer(model_path, model_name, nb_class, image_target, label_target,
     class_names = list([v for v in json.load(file).values()])
     
     input_image = torch.from_numpy(image_target).unsqueeze(0).float().to(device)
-    background = torch.from_numpy(image_target).float().to(device)
+    background = torch.from_numpy(background_imgs).float().to(device)
     
     explainer = shap.GradientExplainer(model_trianed, background)
     shap_values = explainer.shap_values(input_image)
@@ -64,26 +66,25 @@ def shap_explainer(model_path, model_name, nb_class, image_target, label_target,
     cls = class_names[class_index]
 
     input_non_norm =  __normalize(input_image[0])
-    
     shap_values_norm = np.clip(shap_values[class_index][0], 0, 1)
     input_norm = np.clip(input_non_norm.cpu().numpy(), 0, 1)
 
     #plt.savefig("shap_explanation.png")
     if not save_path_shap is None:
+        plt.figure(figsize=(4,6))
         shap.image_plot(
             shap_values_norm.transpose(1, 2, 0),
             input_norm.transpose(1, 2, 0),
             labels=[cls],
             true_labels=[class_names[label_target]]
         )
-        plt.savefig('{}.png'.format(save_path_shap), bbox_inches = 'tight', dpi = 300)
-        
+        plt.savefig(save_path_shap, bbox_inches = 'tight', dpi = 300)
     
     return input_norm.transpose(1, 2, 0), shap_values_norm.transpose(1, 2, 0)
     
     # print(shap_values)
     
-def grad_cam_explainer(model_path, model_name, nb_class, image_target, label_target, save_path_cam=False):
+def grad_cam_explainer(model_path, model_name, nb_class, image_target, label_target, save_path_cam=None):
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -99,6 +100,7 @@ def grad_cam_explainer(model_path, model_name, nb_class, image_target, label_tar
     input_tensor = __normalize(input_tensor)
     input_image = __normalize(input_image, is_cuda=False)
     
+    input_image = np.clip(input_image, 0, 1)
     
     target_layers = __get_layer(model_trianed, model_name)
     
@@ -109,7 +111,7 @@ def grad_cam_explainer(model_path, model_name, nb_class, image_target, label_tar
     grayscale_cam = cam(input_tensor=input_tensor, targets=targets)
     grayscale_cam = grayscale_cam[0, :]
     
-    visualization = show_cam_on_image(input_image.transpose((1, 2, 0)), grayscale_cam, use_rgb=True)
+    visualization = show_cam_on_image(input_image.transpose(1, 2, 0), grayscale_cam, use_rgb=True)
     
     # fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     # axes[0].imshow(input_image.transpose(1, 2, 0), cmap='viridis')
@@ -123,13 +125,14 @@ def grad_cam_explainer(model_path, model_name, nb_class, image_target, label_tar
     
     # Save the GradCAM visualization image
     if not save_path_cam is None:
-        plt.imshow(visualization, alpha=0.6, cmap='viridis')
+        plt.figure(figsize=(4,6))
+        plt.imshow(visualization, alpha=0.2, cmap='viridis')
         plt.axis("off")
-        plt.savefig('{}.png'.format(save_path_cam), bbox_inches = 'tight', dpi = 300)
+        plt.savefig(save_path_cam, bbox_inches = 'tight', dpi = 300)
         
-    return input_image.transpose(1, 2, 0), visualization
+    return input_image.transpose(1, 2, 0), visualization, grayscale_cam
     
-def lime_explainer(model_path, model_name, nb_class, image_target, save_path_lime=False):
+def lime_explainer(model_path, model_name, nb_class, image_target, save_path_lime=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     model_trianed = utils.read_model_from_checkpoint(model_path, model_name, nb_class)
@@ -155,14 +158,18 @@ def lime_explainer(model_path, model_name, nb_class, image_target, save_path_lim
     
     #explanation = __normalize(explanation, is_cuda=False)
     
+    mask = np.zeros_like(image_target)
     temp, mask = explanation.get_image_and_mask(explanation.top_labels[0], positive_only=True,num_features=10, hide_rest=False)  
     temp = __normalize(temp.transpose(2, 0, 1), is_cuda=False).transpose(1, 2, 0)
     img_boundry1 = mark_boundaries(temp, mask)
     
     if not save_path_lime is None:
+        plt.figure(figsize=(4,6))
         plt.imshow(img_boundry1)
         plt.axis("off")
-        plt.savefig(save_path_lime)
+        plt.savefig(save_path_lime, bbox_inches = 'tight', dpi = 300)
+    
+    return img_boundry1, mask
     
 def __load_embeddings(model, model_name, image):
     
@@ -188,7 +195,7 @@ def __load_embeddings(model, model_name, image):
     
     return features_flatten.detach().cpu().numpy()
 
-def tsne_visualizer(model_path, model_name, nb_class, images_target, labels_target, class_names_path, save_path_tsne=False):
+def tsne_visualizer(model_path, model_name, nb_class, images_target, labels_target, class_names_path, save_path_tsne=None):
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -214,7 +221,7 @@ def tsne_visualizer(model_path, model_name, nb_class, images_target, labels_targ
     
     __plot_tsne_umap(method_tsne, labels_names, attack_title="None", class_names=labels_names, save_path="./tnse_visualizer")
     
-def umap_visualizer(model_path, model_name, nb_class, images_target, labels_target, class_names_path, save_path_tsne=False):
+def umap_visualizer(model_path, model_name, nb_class, images_target, labels_target, class_names_path, save_path_tsne=None):
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -274,5 +281,64 @@ def __normalize(image, is_cuda=True):
         img_norm = image * STD[:, None, None].cpu().numpy() + MEAN[:, None, None].cpu().numpy()
         
     return img_norm
+
+def run_explainer(weights_path, model_name, dataset_name, images_target, images_adv_target, labels_target, nb_class, class_names_path=None, root_save_path=None):
     
+    model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
     
+    for x, y, x_adv in zip(images_target, labels_target, images_adv_target):
+        # _, shap_scores = shap_explainer(model_path=model_path, 
+        #                                 model_name=model_name, 
+        #                                 image_target=x,
+        #                                 background_imgs=images_target, 
+        #                                 label_target=y, 
+        #                                 nb_class=nb_class, 
+        #                                 class_names_path=class_names_path)
+        
+        
+        # _, shap_scores_adv = shap_explainer(model_path=model_path, 
+        #                                         model_name=model_name, 
+        #                                         image_target=x_adv,
+        #                                         background_imgs=images_adv_target, 
+        #                                         label_target=y, 
+        #                                         nb_class=nb_class, 
+        #                                         class_names_path=class_names_path)
+        
+        _, grad_image, scores_cam = grad_cam_explainer(model_path=model_path, 
+                                                        model_name=model_name, 
+                                                        image_target=x, 
+                                                        label_target=y, 
+                                                        nb_class=nb_class,
+                                                        save_path_cam="grad_cam.png")
+        
+        # _, grad_image_adv, scores_cam_adv = grad_cam_explainer(model_path=model_path, 
+        #                                                    model_name=model_name, 
+        #                                                    image_target=x_adv, 
+        #                                                    label_target=y, 
+        #                                                    nb_class=nb_class,
+        #                                                    save_path_cam="grad_cam_adv.png")
+        
+        # lime_img, score_lime = lime_explainer(model_path=model_path, 
+        #                                       model_name=model_name, 
+        #                                       nb_class=nb_class, 
+        #                                       image_target=x,
+        #                                       save_path_lime="lime_example.png")
+        
+        # lime_img, score_lime_adv = lime_explainer(model_path=model_path, 
+        #                                       model_name=model_name, 
+        #                                       nb_class=nb_class, 
+        #                                       image_target=x_adv)
+        
+        #print(shap_scores_adv.shape)
+        # print(shap_scores_adv.shape)
+        #print(scores_cam.shape)
+        print(scores_cam.shape)
+        #input_img = np.clip(shap_scores[0].transpose(1, 2, 0), 0, 1)
+        plt.figure(figsize=(4,4))
+        plt.imshow(scores_cam, cmap="viridis", alpha=.9)
+        plt.axis("off")
+        plt.savefig("method_saliency.png",  bbox_inches = 'tight')
+        #print(score_lime_adv)
+        break
+        
+        

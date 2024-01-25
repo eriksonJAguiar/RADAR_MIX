@@ -32,83 +32,50 @@ def get_last_layer_features(model, model_name, image):
     
     return features.detach().cpu()
 
-def evaluate_model(model, model_name, dataset_clean, dataset_adv, nb_class):
+def evaluate_model(model, dataset, nb_class, is_attacked=False):
     
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     #3rd predict attacked images
     #define loss of the model
-    avg_accuracy_clean, avg_accuracy_adv = [], []
-    avg_auc_clean, avg_auc_adv = [], []
+    avg_accuracy = []
+    avg_auc = []
     asr = []
     
-    adv_auc = AUROC(task="binary") if not nb_class > 2 else AUROC(task="multiclass", num_classes=nb_class, average="weighted")
-    val_auc = AUROC(task="binary") if not nb_class > 2 else AUROC(task="multiclass", num_classes=nb_class, average="weighted")
-    
-    logits_clean, logits_adv  = [], []
-    feat_clean, feat_adv = [], []
+    auc = AUROC(task="binary") if not nb_class > 2 else AUROC(task="multiclass", num_classes=nb_class, average="weighted")
     
     model.eval()
     with torch.no_grad():
-        for i, (data_clean, data_adv) in enumerate(zip(dataset_clean, dataset_adv)):
-            #test images for clean examples
-            x_clean, y_clean = data_clean
-            x_clean, y_clean = x_clean.to(device), y_clean.to(device)
-            pred_clean = model(x_clean)
-            
-            #get logits
-            logits_clean.append(pred_clean.detach().cpu())
-            
-            #calculate metrics for clean
-            y_clean = y_clean if nb_class > 2 else y_clean.view(-1, 1).float()
-            y_pred = torch.argmax(pred_clean, dim=1) if nb_class > 2 else (pred_clean > 0.5).float()
-            y_prob = torch.softmax(pred_clean, dim=1) if nb_class > 2 else torch.sigmoid(pred_clean)
-            
-            #get features clean
-            feat_clean.append(get_last_layer_features(model, model_name, x_clean))
-            
-            #calcualte metrics for clean
-            accuracy_clean = np.sum(y_pred.cpu().numpy() == y_clean.cpu().numpy()) / len(y_clean)
-            avg_accuracy_clean.append(accuracy_clean)
-            val_auc(y_prob, y_clean)
-            avg_auc_clean.append(val_auc.compute().cpu().numpy())
-        
+        for i, data in enumerate(dataset):
             #test images for adversarial examples
-            x_adv, y_adv = data_adv
-            x_adv, y_adv = x_adv.to(device), y_adv.to(device)
-            pred_adv = model(x_adv)
-            
-            #get logits for adv
-            logits_adv.append(pred_adv.detach().cpu())
+            x, y = data
+            x, y = x.to(device), y.to(device)
+            pred = model(x)
             
             #calcualte metrics for adv
-            y_adv = y_adv if nb_class > 2 else y_adv.view(-1, 1).float()
-            y_pred = torch.argmax(pred_adv, dim=1) if nb_class > 2 else (pred_adv > 0.5).float()
-            y_prob = torch.softmax(pred_adv, dim=1) if nb_class > 2 else torch.sigmoid(pred_adv)
-            
-            #get features
-            feat_adv.append(get_last_layer_features(model, model_name, x_adv))
+            y = y if nb_class > 2 else y.view(-1, 1).float()
+            y_pred = torch.argmax(pred, dim=1) if nb_class > 2 else (pred > 0.5).float()
+            y_prob = torch.softmax(pred, dim=1) if nb_class > 2 else torch.sigmoid(pred)
 
             #calculate metrics for adv
-            accuracy_adv = np.sum(y_pred.cpu().numpy() == y_adv.cpu().numpy()) / len(y_adv)
-            avg_accuracy_adv.append(accuracy_adv)
-            adv_auc(y_prob, y_adv)
-            avg_auc_adv.append(adv_auc.compute().cpu().numpy())
+            accuracy = np.sum(y_pred.cpu().numpy() == y.cpu().numpy()) / len(y)
+            avg_accuracy.append(accuracy)
+            auc(y_prob, y)
+            avg_auc.append(auc.compute().cpu().numpy())
             
-            #evaluate the attack sucess rate (asr)
-            asr.append(1 - accuracy_adv)
+            if is_attacked:
+                #evaluate the attack sucess rate (asr)
+                asr.append(1 - accuracy)
         
     epochs_metrics = pd.DataFrame()
-    epochs_metrics["epochs"] = list(range(len(dataset_clean)))
-    epochs_metrics["val_acc"] = avg_accuracy_clean
-    epochs_metrics["val_acc_adv"] = avg_accuracy_adv
-    epochs_metrics["val_auc"] = avg_auc_clean
-    epochs_metrics["val_auc_adv"] = avg_auc_adv
-    epochs_metrics["asr"] = asr
+    epochs_metrics["epochs"] = list(range(len(dataset)))
+    epochs_metrics["val_acc"] = avg_accuracy
+    epochs_metrics["val_auc"] = avg_auc
+    
+    if is_attacked:
+        epochs_metrics["asr"] = asr
     
     #logits_clean = np.asanyarray(logits_clean)
-    logits_clean = torch.cat(logits_clean, dim=0).numpy()
-    logits_adv = torch.cat(logits_adv, dim=0).numpy()
-    feat_clean = torch.cat(feat_clean, dim=0).numpy()
-    feat_adv = torch.cat(feat_adv, dim=0).numpy()
+    # logits_adv = torch.cat(logits_adv, dim=0).numpy()
+    # feat_adv = torch.cat(feat_adv, dim=0).numpy()
     
-    return epochs_metrics, logits_clean, logits_adv, feat_clean, feat_adv
+    return epochs_metrics

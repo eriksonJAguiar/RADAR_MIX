@@ -78,10 +78,9 @@ def __get_adv_attack(attack_name, data_loader, classifier, eps):
     
     return images, adv_attack, true_labels
 
-def run_attack(root_path, dataset_name, csv_path, weights_path, model_name, input_size, attack_name, eps, batch_size, lr, save_metrics_path, is_logits_save=False, is_features_save=False):    
+def run_attack(val_attack_dataset, dataset_name, num_class, weights_path, model_name, input_size, attack_name, eps, batch_size, lr, save_metrics_path):    
         
-    #1st read validation dataset to attack the model
-    val_attack_dataset, num_class = utils.load_attacked_database_df(root_path=root_path, csv_path=csv_path, batch_size=batch_size, image_size=input_size)
+    
     #2nd read models from checkpoints
     model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
     model = utils.read_model_from_checkpoint(model_path=model_path, model_name=model_name, nb_class=num_class)
@@ -89,14 +88,14 @@ def run_attack(root_path, dataset_name, csv_path, weights_path, model_name, inpu
     #3rd run attack
     time_start = time.time()
     images, adv_images, true_labels = generate_attack(
-                            model=model,
-                            input_shape=input_size,
-                            lr=lr,
-                            nb_class=num_class,
-                            attack_name=attack_name,
-                            data_loader=val_attack_dataset,
-                            eps=eps
-                        )
+                                    model=model,
+                                    input_shape=input_size,
+                                    lr=lr,
+                                    nb_class=num_class,
+                                    attack_name=attack_name,
+                                    data_loader=val_attack_dataset,
+                                    eps=eps)
+    
     final_time = time.time() - time_start
                 
     #4th convert images and labels to dataloader
@@ -104,11 +103,10 @@ def run_attack(root_path, dataset_name, csv_path, weights_path, model_name, inpu
     loader_adv = utils.numpy_to_dataloader(images=adv_images, labels=true_labels, batch_size=batch_size)
                 
     #5th evaluate accuracy of the models
-    metrics_epochs, logits_clean, logits_adv, feat_clean, feat_adv = evaluate.evaluate_model(model=model,
-                                                                                             model_name=model_name, 
-                                                                                             dataset_clean=loader_clean, 
-                                                                                             dataset_adv=loader_adv, 
-                                                                                             nb_class=num_class)
+    metrics_epochs = evaluate.evaluate_model(model=model,
+                                            dataset_adv=loader_adv, 
+                                            nb_class=num_class,
+                                            is_attacked=True)
     size = len(metrics_epochs["epochs"])
                 
     #6th define metrics
@@ -116,10 +114,8 @@ def run_attack(root_path, dataset_name, csv_path, weights_path, model_name, inpu
                                  "dataset": dataset_name, 
                                  "attack": attack_name, 
                                  "eps": eps, 
-                                 "val_acc": metrics_epochs["val_acc"].mean(), 
-                                 "val_acc_adv": metrics_epochs["val_acc_adv"].mean(),
-                                 "val_auc": metrics_epochs["val_auc"].mean(), 
-                                 "val_auc_adv": metrics_epochs["val_auc_adv"].mean(), 
+                                 "val_acc_adv": metrics_epochs["val_acc"].mean(),
+                                 "val_auc_adv": metrics_epochs["val_auc"].mean(), 
                                  "asr": metrics_epochs["asr"].mean()}])
     
     metrics_time = pd.DataFrame([{"attack": attack_name,
@@ -143,24 +139,7 @@ def run_attack(root_path, dataset_name, csv_path, weights_path, model_name, inpu
     # metrics_epochs.to_csv(epochs_path, index=False, mode="a", header=False if os.path.exists(epochs_path) else True)
     # metrics_time.to_csv(time_path, index=False, mode="a", header=False if os.path.exists(time_path) else True)
     
-    #10th save logits to numpy file
-    if is_logits_save:
-        os.makedirs(os.path.join(save_metrics_path, f"logits_{dataset_name}"), exist_ok=True)
-        if not os.path.exists(os.path.join(save_metrics_path, f"logits_{dataset_name}","clean_logits_{}.npy".format(model_name))):
-            with open(os.path.join(save_metrics_path, f"logits_{dataset_name}","clean_logits_{}.npy".format(model_name)), "wb") as f:
-                np.save(f, logits_clean, allow_pickle=True)
-        
-        with open(os.path.join(save_metrics_path, f"logits_{dataset_name}","adv_logits_{}_{}_{}.npy".format(model_name, attack_name, str(eps))), "wb") as f:
-            np.save(f, logits_adv, allow_pickle=True)
-
-    if is_features_save:
-        os.makedirs(os.path.join(save_metrics_path, f"features_{dataset_name}"), exist_ok=True)
-        if not os.path.exists(os.path.join(save_metrics_path, f"features_{dataset_name}","clean_feat_{}.npy".format(model_name))):
-            with open(os.path.join(save_metrics_path, f"features_{dataset_name}","clean_feat_{}.npy".format(model_name)), "wb") as f:
-                np.save(f, feat_clean, allow_pickle=True)
-        
-        with open(os.path.join(save_metrics_path, f"features_{dataset_name}", "adv_feat_{}_{}_{}.npy".format(model_name, attack_name, str(eps))), "wb") as f:
-            np.save(f, feat_adv, allow_pickle=True)
+    #10th save logits to numpy fil
             
     return images, adv_images, true_labels
     
