@@ -104,7 +104,7 @@ def run_attack(val_attack_dataset, dataset_name, num_class, weights_path, model_
                 
     #5th evaluate accuracy of the models
     metrics_epochs = evaluate.evaluate_model(model=model,
-                                            dataset_adv=loader_adv, 
+                                            dataset=loader_adv, 
                                             nb_class=num_class,
                                             is_attacked=True)
     size = len(metrics_epochs["epochs"])
