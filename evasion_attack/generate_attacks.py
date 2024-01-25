@@ -130,14 +130,14 @@ def run_attack(val_attack_dataset, dataset_name, num_class, weights_path, model_
     
     print(metrics_avg)    
     #8th define path to save metrics
-    # avg_path = os.path.join(save_metrics_path, "attacks_avg.csv")
-    # epochs_path = os.path.join(save_metrics_path, "attacks_epochs.csv")
-    # time_path = os.path.join(save_metrics_path, "attacks_time.csv")
+    avg_path = os.path.join(save_metrics_path, "attacks_avg.csv")
+    epochs_path = os.path.join(save_metrics_path, "attacks_epochs.csv")
+    time_path = os.path.join(save_metrics_path, "attacks_time.csv")
     
-    # #9th save metrics to CSV file
-    # metrics_avg.to_csv(avg_path, index=False, mode="a", header=False if os.path.exists(avg_path) else True)
-    # metrics_epochs.to_csv(epochs_path, index=False, mode="a", header=False if os.path.exists(epochs_path) else True)
-    # metrics_time.to_csv(time_path, index=False, mode="a", header=False if os.path.exists(time_path) else True)
+    #9th save metrics to CSV file
+    metrics_avg.to_csv(avg_path, index=False, mode="a", header=False if os.path.exists(avg_path) else True)
+    metrics_epochs.to_csv(epochs_path, index=False, mode="a", header=False if os.path.exists(epochs_path) else True)
+    metrics_time.to_csv(time_path, index=False, mode="a", header=False if os.path.exists(time_path) else True)
     
     #10th save logits to numpy fil
             

@@ -14,14 +14,17 @@ def iou_score(image_original, image_attacked):
     
     return iou
 
-def ssim_score(image_original, image_attacked):
+def ssim_score(image_original, image_attacked, win_size=7):
     
-    print(image_original.shape)
+    channel_axis = None
     if len(image_original.shape) == 3:
-        image_original = cv2.cvtColor(image_original.transpose(3, 1, 2), cv2.COLOR_BGR2GRAY)
-    if len(image_attacked.shape) == 3:
-        image_attacked = cv2.cvtColor(image_attacked.transpose(3, 1, 2), cv2.COLOR_BGR2GRAY)
-    
-    ssim_value, _ = structural_similarity(image_original, image_attacked, full=True)
+        channel_axis = 2
+
+    ssim_value, _ = structural_similarity(image_original, 
+                                          image_attacked, 
+                                          full=True, 
+                                          win_size=win_size, 
+                                          channel_axis=channel_axis, 
+                                          data_range=image_original.max() - image_original.min())
 
     return ssim_value
