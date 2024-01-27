@@ -73,5 +73,5 @@ if __name__ == '__main__':
                                     "val_acc": metrics_epochs["val_acc"].mean(),
                                     "val_auc": metrics_epochs["val_auc"].mean()}])
         
-        avg_path = os.path.join("./metrics", "attacks_avg.csv")
+        avg_path = os.path.join("./metrics", "model_eval_avg.csv")
         metrics_avg.to_csv(avg_path, index=False, mode="a", header=False if os.path.exists(avg_path) else True)

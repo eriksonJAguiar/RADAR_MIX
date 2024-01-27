@@ -127,8 +127,7 @@ def run_attack(val_attack_dataset, dataset_name, num_class, weights_path, model_
     metrics_epochs["attack"] = np.repeat(attack_name, size)
     metrics_epochs["dataset"] = np.repeat(dataset_name, size)
     metrics_epochs["eps"] = np.repeat(eps, size)
-    
-    print(metrics_avg)    
+       
     #8th define path to save metrics
     avg_path = os.path.join(save_metrics_path, "attacks_avg.csv")
     epochs_path = os.path.join(save_metrics_path, "attacks_epochs.csv")
