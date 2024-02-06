@@ -8,23 +8,20 @@ import pandas as pd
 import os
 import time
 
+def run_attack(root_path: str, dataset_name: str, csv_path: str, weights_path: str, model_name: str, attack_name: str, eps: float, batch_size: int, lr: float) -> None:
+    """Run adversarial attack on selected dataset
 
-# parser = argparse.ArgumentParser(description='')
-# parser.add_argument('-dm','--dataset_name', help='databaset name')
-# parser.add_argument('-d','--dataset', help='databaset path', required=False)
-# parser.add_argument('-dv','--dataset_csv', help='databaset csv file', required=False)
-
-# # parser.add_argument('-mn', '--model_name', help="model to training name: resnet50 or resnet18", required=True)
-# parser.add_argument('-wp', '--weights_path', help="root of model weigths path", required=True)
-
-# # parser.add_argument('-an', '--attack_name', help="Attack name FGSM, PGD, CW or UAP", required=True)
-# # parser.add_argument('-e', '--eps', help="Attack noise", required=True)
-# #parser.add_argument('-pa', '--path_attack', help="Attack noise", required=True)
-
-# args = vars(parser.parse_args())
-
-def run_attack(root_path, dataset_name, csv_path, weights_path, model_name, attack_name, eps, batch_size, lr):    
-   
+    Args:
+        root_path (str): root path of images
+        dataset_name (str): target dataset name
+        csv_path (str): csv that indicates dataset content
+        weights_path (str): models weights root path
+        model_name (str): target model name
+        attack_name (str): attack will be applied
+        eps (float): noise level (e.g. 0.001)
+        batch_size (int): batch of images size 
+        lr (float): learning reate of the model
+    """
     input_size = (299, 299) if model_name == "inceptionv3" else (224, 224)
         
     print("Load validation database using {}...".format(dataset_name))

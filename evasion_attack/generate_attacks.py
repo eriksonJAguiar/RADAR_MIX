@@ -12,25 +12,28 @@ import evaluate
 from art.estimators.classification import PyTorchClassifier
 from art.attacks.evasion import FastGradientMethod, DeepFool, CarliniL2Method, UniversalPerturbation, ProjectedGradientDescent, BasicIterativeMethod, Wasserstein
 
-#import foolbox as fb
-#from foolbox.attacks import L2FastGradientAttack, L2CarliniWagnerAttack, L2DeepFoolAttack
-
 def generate_attack(model, data_loader, input_shape, lr, nb_class, attack_name, eps):
-    
-    #1st: read a pytorch model
-    # checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
-    # state_dict = {key[6:] : checkpoint['state_dict'][key] for key in checkpoint['state_dict']}
-    # model = __get_model_structure(model_name, nb_class)
-    # model.load_state_dict(state_dict)
-    # #model = __get_model_last_layers(model_name, model, nb_class)
-    # model.eval()
-    
-    #2nd define the loss and optimizer
+    """selecting and generate adversarial attack
+
+    Args:
+        model (torch.nn.Module): pytorch pre-trained model 
+        data_loader (torch.utils.data.Dataloader): Image dataloader
+        input_shape (tuple): size of image, i.e., (128, 128)
+        lr (float): learning rate
+        nb_class (int): number of class in dataset
+        attack_name (str): attack will be performed
+        eps (float): noise level
+
+    Returns:
+        images (np.ndarray): clean images 
+        adv_images (np.ndarray) crafted image attacked by adversarial attacks 
+        true_labels (np.ndarray): labels that indicate true values
+    """
+    #define the loss and optimizer
     loss = torch.nn.CrossEntropyLoss() if nb_class > 2 else torch.nn.BCEWithLogitsLoss()
-    #loss = Loss(loss_type="focal_loss", fl_gamma=5)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
     
-    #3rd create ART classifier
+    #create ART classifier
     classifier = PyTorchClassifier(
         model=model,
         loss=loss,
@@ -49,7 +52,19 @@ def generate_attack(model, data_loader, input_shape, lr, nb_class, attack_name, 
     return images, adv_images, true_labels
 
 def __get_adv_attack(attack_name, data_loader, classifier, eps):
-    
+    """select one of attacks defined
+
+    Args:
+        attack_name (str): attack name, such as FGSM, BIM, DeepFool, CW, PGD, and UAP.
+        data_loader (torch.utils.data.Dataloader): images and labels dataloader
+        classifier (art.estimators.classification.PyTorchClassifier): ART classifier generate using model and features of attack
+        eps (float): noise level
+
+    Returns:
+        images (np.ndarray): clean images 
+        adv_images (np.ndarray) crafted image attacked by adversarial attacks 
+        true_labels (np.ndarray): labels that indicate true values
+    """    
     attack = None
     
     #load images and labels
@@ -79,8 +94,27 @@ def __get_adv_attack(attack_name, data_loader, classifier, eps):
     return images, adv_attack, true_labels
 
 def run_attack(val_attack_dataset, dataset_name, num_class, weights_path, model_name, input_size, attack_name, eps, batch_size, lr, save_metrics_path):    
-        
-    
+    """running attack on dataset and target model
+
+    Args:
+        val_attack_dataset (torch.utils.data.Dataloader): dataloader in validation phase to attack dataset
+        dataset_name (str): target dataset name
+        num_class (int): number of class
+        weights_path (str): models weights root path
+        model_name (str): target model name
+        input_size (tuple): image size (128, 128)
+        attack_name (str): attack will be applied
+        eps (float): noise level (e.g. 0.001)
+        batch_size (int): batch of images size 
+        lr (float): learning reate of the model
+        save_metrics_path (str): path to save metrics generate by attacks
+
+    Returns:
+        _type_: _description_
+        images (np.ndarray): clean images 
+        adv_images (np.ndarray) crafted image attacked by adversarial attacks 
+        true_labels (np.ndarray): labels that indicate true values
+    """
     #2nd read models from checkpoints
     model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
     model = utils.read_model_from_checkpoint(model_path=model_path, model_name=model_name, nb_class=num_class)
