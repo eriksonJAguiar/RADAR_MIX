@@ -1,14 +1,16 @@
-from train_model import PytorchTrainingAndTest
-from models import ModelsPretrained
 import argparse
 import pandas as pd
 import torch
 import numpy as np
 import os
-
 import sys
-sys.path.append("../utils")
+sys.path.append("./utils")
+sys.path.append("./clean_train")
+
+
 import utils
+from train_model import PytorchTrainingAndTest
+from models import ModelsPretrained
 
 #Update CUDA version
 #pip install --user torch==1.11.0+cu113 torchvision==0.12.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
@@ -63,14 +65,14 @@ if __name__ == '__main__':
     
     if not kfold is None:
         train, test, num_class = utils.load_database_kf(root_path=base_path, batch_size=batch_size, image_size=image_size, csv_path=csv_path, is_agumentation=as_aug, n_folds=kfold, as_rgb=as_rgb)
-        utils.show_images(train[0], database_name, "../metrics/figures")
+        utils.show_images(train[0], database_name, "./metrics/figures")
     elif not csv_path is None:
         train, test, num_class = utils.load_database_df(root_path=base_path, batch_size=batch_size, image_size=image_size, csv_path=csv_path, is_agumentation=as_aug, test_size=test_size, as_rgb=as_rgb)
-        utils.show_images(train, database_name, "../metrics/figures")
+        utils.show_images(train, database_name, "./metrics/figures")
             #train, test, num_class = utils.load_database_kf(path_image=base_path, batch_size=batch_size, image_size=image_size,  n_folds=5, csv_path=csv_path)
     else:
         train, test, num_class = utils.load_database(path=base_path, batch_size=batch_size, image_size=image_size, is_agumentation=as_aug)
-        utils.show_images(train, database_name, "../metrics/figures")
+        utils.show_images(train, database_name, "./metrics/figures")
 
     print(f"Number of class: {str(num_class)}")
     
@@ -121,9 +123,9 @@ if __name__ == '__main__':
     #results_metrics["fold"] = exp_num
                 
     print(results)
-    if os.path.exists("../metrics/results_{}.csv".format(database_name)):
-        results.to_csv("../metrics/results_{}.csv".format(database_name), mode="a", header=None)
+    if os.path.exists("./metrics/results_{}.csv".format(database_name)):
+        results.to_csv("./metrics/results_{}.csv".format(database_name), mode="a", header=None)
     else:
-        results.to_csv("../metrics/results_{}.csv".format(database_name))
+        results.to_csv("./metrics/results_{}.csv".format(database_name))
         
         

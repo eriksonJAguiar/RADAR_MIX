@@ -13,7 +13,17 @@ from lightning.pytorch.callbacks import Callback
 from balanced_loss import Loss
 
 class TrainModelLigthning(L.LightningModule):
+    """Module to train a model using Pytorch lightning
+    """    
     def __init__(self, model_pretrained, num_class, lr, is_per_class=False):
+        """constructor
+
+        Args:
+            model_pretrained (torch.nn.Module): architecture pre-trained on imageNet
+            num_class (int): number of classes in the dataset
+            lr (float): learning rate for training the model
+            is_per_class (bool, optional): If is True metrics are calculated per class. Defaults to False.
+        """        
         super().__init__()
         self.model = model_pretrained
         self.lr = lr

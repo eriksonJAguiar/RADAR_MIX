@@ -6,19 +6,20 @@ import torch.nn.functional as F
 
 
 class ModelsPretrained():
-    
+    """class to load pre-trained architectures
+    """    
     def _initialize_weights(self, m):
         if isinstance(m, torch.nn.Linear):
             torch.nn.init.xavier_uniform(m.weight)
             m.bias.data.fill_(0.01)
     
     def _freeze_layers(self, model, num_layers_to_freeze):
-        '''
-            function to freeze layer of CNNs
-            params:
-                - model: target model to freeze layers
-                - num_layers_to_freeze: number of layer aim to freeze
-        '''
+        """function to freeze layer of CNNs
+
+        Args:
+            model (torch.nn.Module): target model to freeze layers
+            num_layers_to_freeze (int): number of layer aim to freeze
+        """        
         #freeze all layer
         for param in model.parameters():
             param.requires_grad = False
@@ -36,7 +37,7 @@ class ModelsPretrained():
             num_class (int): number of class extracted from dataset
 
         Returns:
-            pytorch.model: a loaded model using the pytorch structure
+            model (torch.nn.Module): a pre-trained on ImageNet architecture with torchvision
         """
         model = None
         out_features_model = num_class if num_class > 2 else 1

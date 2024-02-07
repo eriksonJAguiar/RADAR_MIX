@@ -17,22 +17,28 @@ device = torch.device(dev)
 print("Device: {}".format(device))
 
 #Class for training and test 
-class PytorchTrainingAndTest:
-    
-    def run_model(self, exp_num, model, model_name, database_name, train, test, learning_rate, num_epochs, num_class=2, is_per_class=False):
-        '''
-          function to train the model using pytorch lightning
-          params:
-            - exp_num: num of experiments to run a model
-            - model: architecture pre-trained that trained on dataset
-            - database_name: string that describe the databaset to train a model
-            - train: dataloader of the train
-            - test: dataloader of the test
-            - learning_rate: float to define a learning rate of the model optimization
-            - num_epochs: number maximium of epoch during the trainning
-            - num_class: class number on dataset
-        '''
-        
+class PytorchTrainingAndTest():
+    """Training and testing model
+    """    
+    def run_model(self, exp_num, model, model_name, database_name, train, test, learning_rate, num_epochs, metrics_save_path, num_class=2, is_per_class=False):
+        """execute train and test of the model
+
+        Args:
+            exp_num (int): index of experiment executed
+            model (torch.nn.Module): model will be trained
+            model_name (str): model name
+            database_name (str): database name
+            train (torch.data.utils.Dataloader): train dataloader
+            test (torch.data.utils.Dataloader): test datalaoder
+            learning_rate (float): learning rate for training the model
+            num_epochs (int): number of epochs for training and testing
+            metrics_save_path (str): root path to save metrics
+            num_class (int, optional): number of class in the dataset. Defaults to 2.
+            is_per_class (bool, optional): If is True is calculated metrics per class. Defaults to False.
+
+        Returns:
+            metrics_df (pd.Dataframe): dataframe with model's performance
+        """        
         #init model using a pytorch lightining call
         ligh_model = TrainModelLigthning(model_pretrained=model, 
                                          num_class=num_class, 
@@ -43,11 +49,11 @@ class PytorchTrainingAndTest:
         early_stop_callback = EarlyStopping(monitor='val_acc', min_delta=0.01, patience=8, verbose=True, mode='max')
         
         #define custom callback to calculate the train and test time 
-        timer = CustomTimeCallback("../metrics/time/train_time_{}-{}.csv".format(model_name, database_name),
-                                       "../metrics/time/test_time_{}-{}.csv".format(model_name, database_name))
+        timer = CustomTimeCallback(os.path.join(metrics_save_path, "time", "train_time_{}-{}.csv".format(model_name, database_name)),
+                                   os.path.join(metrics_save_path, "time", "test_time_{}-{}.csv".format(model_name, database_name)))
             
         #Define callback to save the best model weights
-        ckp = ModelCheckpoint(dirpath="../metrics/logs/hold-out", 
+        ckp = ModelCheckpoint(dirpath=os.path.join(metrics_save_path,"logs", "hold-out"), 
                               filename="{}-{}-exp{}".format(model_name, database_name, exp_num), 
                               save_top_k=1, 
                               mode="max", 
@@ -59,7 +65,7 @@ class PytorchTrainingAndTest:
         #callbacks=[ckp, timer]
         
         #define the function to save the logs
-        logger = CSVLogger(save_dir="../metrics/logs/hold-out", name="{}-{}".format(model_name, database_name), version=exp_num)
+        logger = CSVLogger(save_dir=os.path.join(metrics_save_path,"logs", "hold-out"), name="{}-{}".format(model_name, database_name), version=exp_num)
         
         trainer = L.Trainer(
             max_epochs= num_epochs,
@@ -146,7 +152,7 @@ class PytorchTrainingAndTest:
             num_folds (int, optional): number of folds on cross validation. Defaults to 5.
 
         Returns:
-            pandas.DataFrame: dataframe of metrics for training and testing
+            metrics_final (pd.Dataframe): dataframe of metrics for training and testing
         """
         #init model using a pytorch lightining call
         ligh_model = TrainModelLigthning(model_pretrained=model, 
@@ -229,11 +235,13 @@ class PytorchTrainingAndTest:
     def save_metrics_to_figure(self, metrics, model_name, database_name, fold="hold-out"):
         '''
           Generate and save figures of metrics accuracy, loss, and f1-score by models and database
-          params:
-            - metris: dict of metrics extract from pytoch
-            - log_dir: path to save images
-            - model_name: trained model name
-            - database_name: database applied to train the model
+          
+          Args:
+            metris (dict): dict of metrics extract from pytoch.
+            log_dir (str): path to save images.
+            model_name (str): trained model name.
+            database_name (str): database applied to train the model.
+            fold (str, optional): If fold is not set up the hold-out is saved. Defaults hold-out.
         '''
         aggreg_metrics = []
         agg_col = "epoch"

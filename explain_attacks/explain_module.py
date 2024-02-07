@@ -282,10 +282,10 @@ def __load_embeddings(model, model_name, image):
     Args:
         model (torch.nn.Module): pre-trained model
         model_name (str): target model name
-        image (np.ndarray): _description_
+        image (np.ndarray): image to extract features
 
     Returns:
-        _type_: _description_
+        features_cnn (np.ndarray): features extracted from network
     """    
     last_layer = {
         "resnet50": 'layer4.2.conv3',
@@ -307,10 +307,21 @@ def __load_embeddings(model, model_name, image):
     
     features_flatten = features.view(features.size(0), -1)
     
-    return features_flatten.detach().cpu().numpy()
-
-def tsne_visualizer(model, model_name, nb_class, images_target):
+    features_cnn = features_flatten.detach().cpu().numpy()
     
+    return features_cnn
+
+def tsne_visualizer(model, model_name, images_target):
+    """generate tsne embedding from a set of images
+
+    Args:
+        model (torch.nn.Module): pytorch pre-trained model
+        model_name (str): model name
+        images_target (np.ndarray): array of images will be visualized using t-sne
+
+    Returns:
+        tsne_method: tsne embeddings
+    """    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     model = model.to(device)
@@ -327,12 +338,19 @@ def tsne_visualizer(model, model_name, nb_class, images_target):
     
     method_tsne = TSNE(n_components=2, learning_rate='auto', init="random", perplexity=2).fit_transform(all_features)
     
-    #__plot_tsne_umap(method_tsne, labels_names, attack_title=attack_title, class_names=labels_names, save_path="./tnse_visualizer")
-    
     return method_tsne
     
-def umap_visualizer(model, model_name, nb_class, images_target):
-    
+def umap_visualizer(model, model_name, images_target):
+    """generate umap embbeding from a set of images
+
+    Args:
+        model (torch.nn.Module): pytorch pre-trained model
+        model_name (str): model name
+        images_target (np.ndarray): array of images will be visualized using umap
+
+    Returns:
+        method_umap: umap embeddings
+    """    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     model = model.to(device)
@@ -349,12 +367,18 @@ def umap_visualizer(model, model_name, nb_class, images_target):
     
     method_umap = umap.UMAP(n_components=2, n_neighbors=2, min_dist=0.1, metric='euclidean').fit_transform(all_features)
     
-    #__plot_tsne_umap(method_umap, attack_title=attack_title, class_names=labels_names, save_path="umap_visualizer.png")
-    
     return method_umap
 
 def plot_tsne_umap(features, method, attack_title, class_names, save_path=None):
-    
+    """plot tsne or umpa visualization
+
+    Args:
+        features (np.ndarray): features extract from a network
+        method (str): visualization method. TSNE or Umap.
+        attack_title (str): name of attack applied. None means that attack is not applied
+        class_names (list): list of classes name
+        save_path (str, optional): path to save figures. Defaults to None.
+    """    
     fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(6,4), constrained_layout=True)
     
     category_colors = {
@@ -375,7 +399,15 @@ def plot_tsne_umap(features, method, attack_title, class_names, save_path=None):
         fig.savefig(save_path, bbox_inches = 'tight', dpi = 300)
 
 def __normalize(image, is_cuda=True):
-    
+    """normalize image transformed with imageNet settings
+
+    Args:
+        image (np.ndarray): image will be converted
+        is_cuda (bool, optional): if True use operations on GPU_. Defaults to True.
+
+    Returns:
+        img_norm (np.ndarray): normalized image
+    """    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     MEAN = torch.tensor([0.485, 0.456, 0.406]).to(device)
@@ -389,7 +421,22 @@ def __normalize(image, is_cuda=True):
     return img_norm
 
 def run_explainer(weights_path, model_name, dataset_name, images_target, images_adv_target, labels_target, nb_class, class_names_path=None, root_save_path=None):
-    
+    """run explainations for all methods, such as SHAP, Grad-CAM, and LIME
+
+    Args:
+        weights_path (str): path that are locate weight checkpoints
+        model_name (str): target model name
+        dataset_name (str): taget dataset name
+        images_target (np.ndarray): array of clean images will be explained
+        images_adv_target (np.ndarray):array of attacked image will be explained
+        labels_target (np.ndarray): array of clean labels of the images
+        nb_class (int): number of classes in the dataset
+        class_names_path (str, optional): path to json that represet classes name. Defaults to None.
+        root_save_path (str, optional): path to save explained images. Defaults to None.
+
+    Returns:
+        metrics_xai (dict): metrics such as IoU and SSIM for explainations.
+    """    
     model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
     cls_searh = list(filter(lambda x: x in list(labels_target), range(nb_class)))
     idx_rand = list(map(lambda x: list(labels_target).index(x), cls_searh))
@@ -473,7 +520,19 @@ def run_explainer(weights_path, model_name, dataset_name, images_target, images_
     return metrics_xai
         
 def manifold_visualization(weights_path, model_name, dataset_name, attack_title, images_target, images_adv_target, labels_target, nb_class, class_names_path, root_save_path):
-    
+    """visualization of tsne or umap representation for clean and attacked images.
+
+    Args:
+        weights_path (str): path that are locate weight checkpoints
+        model_name (str): target model name
+        dataset_name (str): taget dataset name
+        images_target (np.ndarray): array of clean images will be explained
+        images_adv_target (np.ndarray):array of attacked image will be explained
+        labels_target (np.ndarray): array of clean labels of the images
+        nb_class (int): number of classes in the dataset
+        class_names_path (str): path to json that represet classes name.
+        root_save_path (str): path to save figures.
+    """    
     file = open(class_names_path)
     class_names = list([v for v in json.load(file).values()])
     class_names_adv = ["Clean", "Adversarial"]
