@@ -115,7 +115,8 @@ if __name__ == '__main__':
                                               train=train, 
                                               test=test, 
                                               learning_rate=learning_rate, 
-                                              num_epochs=num_epochs, 
+                                              num_epochs=num_epochs,
+                                              metrics_save_path="./metrics", 
                                               num_class=num_class,
                                               is_per_class=is_per_class)
                     
