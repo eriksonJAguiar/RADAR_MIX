@@ -1,7 +1,7 @@
 import torch
 import pandas as pd
 import os
-from train_model_lightning import TrainModelLigthning, CustomTimeCallback
+from clean_train.train_model_lightning import TrainModelLigthning, CustomTimeCallback
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.loggers import CSVLogger
@@ -50,7 +50,8 @@ class PytorchTrainingAndTest():
         
         #define custom callback to calculate the train and test time 
         timer = CustomTimeCallback(os.path.join(metrics_save_path, "time", "train_time_{}-{}.csv".format(model_name, database_name)),
-                                   os.path.join(metrics_save_path, "time", "test_time_{}-{}.csv".format(model_name, database_name)))
+                                   os.path.join(metrics_save_path, "time", "test_time_{}-{}.csv".format(model_name, database_name)), 
+                                   metrics_save_path)
             
         #Define callback to save the best model weights
         ckp = ModelCheckpoint(dirpath=os.path.join(metrics_save_path,"logs", "hold-out"), 

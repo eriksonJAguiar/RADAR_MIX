@@ -1,16 +1,11 @@
 import torch
 import time
 import os
-import torch.nn as nn
 import torch.optim as optim
-import torchvision.models as models
 import lightning as L
-import numpy as np
-from torch.nn import functional as F
 from torchmetrics.classification import Accuracy, Recall, Specificity, Precision, F1Score, AUROC, ConfusionMatrix
 import torchmetrics
 from lightning.pytorch.callbacks import Callback
-from balanced_loss import Loss
 
 class TrainModelLigthning(L.LightningModule):
     """Module to train a model using Pytorch lightning
@@ -138,12 +133,12 @@ class TrainModelLigthning(L.LightningModule):
             auc_per_class = torchmetrics.functional.auroc(probs, y_true, task="multiclass", num_classes=self.num_class, average="none").cpu().numpy()
             
             for i, (acc, pre, re, spc, f1, auc) in enumerate(zip(acc_per_class, pre_per_class, recall_per_class, spc_per_class, f1_per_class, auc_per_class)):
-                self.log(f'acc_{i}', acc, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'precision_{i}', pre, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'recall_{i}', re, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'f1_score_{i}', f1, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'specificity_{i}', spc, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'auc_{i}', auc, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'val_acc_{i}', acc, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'val_precision_{i}', pre, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'val_recall_{i}', re, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'val_f1_score_{i}', f1, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'val_specificity_{i}', spc, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'val_auc_{i}', auc, prog_bar=True, on_epoch=True, on_step=False)
         
         
         else:
@@ -174,12 +169,12 @@ class TrainModelLigthning(L.LightningModule):
             auc_per_class = torchmetrics.functional.auroc(probs, y_true, task="multiclass", num_classes=self.num_class, average="none").cpu().numpy()
             
             for i, (acc, pre, re, spc, f1, auc) in enumerate(zip(acc_per_class, pre_per_class, recall_per_class, spc_per_class, f1_per_class, auc_per_class)):
-                self.log(f'acc_{i}', acc, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'precision_{i}', pre, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'recall_{i}', re, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'f1_score_{i}', f1, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'specificity_{i}', spc, prog_bar=True, on_epoch=True, on_step=False)
-                self.log(f'auc_{i}', auc, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'test_acc_{i}', acc, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'test_precision_{i}', pre, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'test_recall_{i}', re, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'test_f1_score_{i}', f1, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'test_specificity_{i}', spc, prog_bar=True, on_epoch=True, on_step=False)
+                self.log(f'test_auc_{i}', auc, prog_bar=True, on_epoch=True, on_step=False)
         
         else:
             self.val_accuracy(y_pred, y_true)
@@ -212,11 +207,11 @@ class TrainModelLigthning(L.LightningModule):
 
 class CustomTimeCallback(Callback):
     
-    def __init__(self, file_train, file_test) -> None:
+    def __init__(self, file_train, file_test, root_path) -> None:
         super().__init__()
         # if not os.path.exists("../metrics/time"):
         #     os.mkdir("../metrics/time")
-        os.makedirs("../metrics/time", exist_ok=True)
+        os.makedirs(os.path.join(root_path, "time"), exist_ok=True)
         
         self.file_train = file_train
         self.file_test = file_test

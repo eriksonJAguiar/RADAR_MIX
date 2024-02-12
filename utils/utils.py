@@ -51,7 +51,7 @@ def load_attacked_database(path, batch_size, folder_from, image_size=(128,128)):
 
     return val_loader, num_class
 
-def load_database(path, batch_size, image_size=(128,128), is_agumentation=False):
+def load_database(path, batch_size, image_size=(128,128), is_agumentation=False, is_pretrained=False):
     """load images from folder and create dataloader for training and testing.
 
     Args:
@@ -76,14 +76,15 @@ def load_database(path, batch_size, image_size=(128,128), is_agumentation=False)
                         #transforms.RandomAffine(degrees=30, translate=(0.1, 0.1), scale=(0.8, 1.2), shear=15),
                         transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
                         transforms.ToTensor(),
-                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) if is_pretrained else transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+
                     ])
         tf_image_test = transforms.Compose([
                 transforms.Resize(image_size),
                 #transforms.AutoAugment(transforms.autoaugment.AutoAugmentPolicy.CIFAR10),
                 transforms.ToTensor(),
                 #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) if is_pretrained else transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
     else:
         tf_image_train = tf_image_test = transforms.Compose([
@@ -91,7 +92,7 @@ def load_database(path, batch_size, image_size=(128,128), is_agumentation=False)
             #transforms.AutoAugment(transforms.autoaugment.AutoAugmentPolicy.CIFAR10),
             transforms.ToTensor(),
             #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) if is_pretrained else transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
         
     ######### Train ###############
@@ -114,7 +115,7 @@ def load_database(path, batch_size, image_size=(128,128), is_agumentation=False)
 
     return train_loader, test_loader, num_class
 
-def load_database_kf(root_path, batch_size, image_size=(128,128), csv_path=None, is_agumentation=False, n_folds=5, as_rgb=False):
+def load_database_kf(root_path, batch_size, image_size=(128,128), csv_path=None, is_agumentation=False, n_folds=5, as_rgb=False, is_pretrained=False):
     """load database from folder or csv file using cross validation
 
     Args:
@@ -143,14 +144,14 @@ def load_database_kf(root_path, batch_size, image_size=(128,128), csv_path=None,
                                 #    transforms.RandomResizedCrop(224),
                                     transforms.ToTensor(),
                                     #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) if is_pretrained else transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
                                 ])
     else:
         tf_image = transforms.Compose([
             transforms.Resize(image_size),
             transforms.ToTensor(),
             #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) if is_pretrained else transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
         
     kf = KFold(n_splits=n_folds, shuffle=True, random_state=RANDOM_SEED)
@@ -180,7 +181,7 @@ def load_database_kf(root_path, batch_size, image_size=(128,128), csv_path=None,
 
     return train_loader, test_loader, num_class
 
-def load_database_df(root_path, csv_path, batch_size, image_size=(128,128), is_agumentation=False, test_size=None, as_rgb=False):
+def load_database_df(root_path, csv_path, batch_size, image_size=(128,128), is_agumentation=False, test_size=None, as_rgb=False, is_pretrained=False):
     """load images from csv and split into train and testing resulting train and test dataloader
 
     Args:
@@ -208,14 +209,14 @@ def load_database_df(root_path, csv_path, batch_size, image_size=(128,128), is_a
                                     #transforms.ColorJitter(brightness=(0.7, 1.5)),
                                     transforms.ToTensor(),
                                     #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) if is_pretrained else transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
                                 ])
     else:
         tf_image = transforms.Compose([
             transforms.Resize(image_size),
             transforms.ToTensor(),
             #transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) if is_pretrained else transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
         ])
         
     if test_size is None:
