@@ -1,11 +1,12 @@
 import sys
-sys.path.append('./evasion_attack')
-sys.path.append("./ood_analysis")
-sys.path.append("./utils")
-sys.path.append("./explain_attacks")
+# sys.path.append('./evasion_attack')
+# sys.path.append("./ood_analysis")
+# sys.path.append("./utils")
+# sys.path.append("./explain_attacks")
 
 from evasion_attack import  evaluate
-import utils
+from utils import utils
+#import utils
 import torch
 import numpy as np
 import argparse
@@ -26,12 +27,11 @@ parser.add_argument('-wp', '--weights_path', help="root of model weigths path", 
 
 args = vars(parser.parse_args())
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def create_model(weights_path, model_name, nb_class):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+def create_model(weights_path, model_name, dataset_name, nb_class):    
     model_path = os.path.join(weights_path, "{}-{}-exp1.ckpt".format(model_name, dataset_name))
-    model = utils.read_model_from_checkpoint(model_path=model_path, model_name=model_name, nb_class=num_class)
+    model = utils.read_model_from_checkpoint(model_path=model_path, model_name=model_name, nb_class=nb_class)
     model = model.to(device)
     model.eval() 
     
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         #1st read validation dataset to attack the model
         val_dataset, num_class = utils.load_attacked_database_df(root_path=root_path, csv_path=csv_path, batch_size=batch_size, image_size=input_size)
         
-        model = create_model(model_name=model_name, weights_path=weights_path, nb_class=num_class)
+        model = create_model(model_name=model_name, weights_path=weights_path, dataset_name=dataset_name, nb_class=num_class)
         metrics_epochs = evaluate.evaluate_model(model=model,
                                                 dataset=val_dataset,
                                                 nb_class=num_class)

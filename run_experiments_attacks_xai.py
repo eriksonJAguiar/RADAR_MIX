@@ -1,12 +1,12 @@
 import sys
-sys.path.append('./evasion_attack')
-sys.path.append("./ood_analysis")
-sys.path.append("./utils")
-sys.path.append("./explain_attacks")
+# sys.path.append('./evasion_attack')
+# sys.path.append("./ood_analysis")
+# sys.path.append("./utils")
+# sys.path.append("./explain_attacks")
 
 from evasion_attack import generate_attacks, evaluate
 from explain_attacks import explain_module
-import utils
+from utils import utils
 import torch
 import numpy as np
 import argparse
@@ -43,8 +43,8 @@ if __name__ == '__main__':
     batch_size = 32
     lr = 0.001
     model_name = "resnet50" #["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
-    attacks = ["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW"] 
-    epsilons = [0.05, 0.5] #[0.001, 0.01, 0.05, 0.1, 0.5]
+    attacks = ["Auto"] #["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW"] 
+    epsilons = [0.5] #[0.001, 0.01, 0.05, 0.1, 0.5]
     class_names_path = "./dataset/MelanomaDB/class_name.json"
     save_metrics_path = "./metrics"
     

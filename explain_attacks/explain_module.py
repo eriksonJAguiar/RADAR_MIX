@@ -1,7 +1,7 @@
 import json
 import sys
-sys.path.append("../utils")
-sys.path.append("./evaluate_explaination")
+# sys.path.append("../utils")
+# sys.path.append("./evaluate_explaination")
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -10,8 +10,8 @@ import os
 import pandas as pd
 
 import shap
-import utils
-from evaluate_explaination import iou_score, ssim_score
+from utils import utils
+from explain_attacks.evaluate_explaination import iou_score, ssim_score
 
 from pytorch_grad_cam.utils.image import show_cam_on_image, preprocess_image
 from pytorch_grad_cam import GradCAM

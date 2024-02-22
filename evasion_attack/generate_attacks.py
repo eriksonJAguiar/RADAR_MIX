@@ -1,16 +1,18 @@
 import sys
-sys.path.append("../utils")
+#sys.path.append("../utils")
 
 import torch
 import numpy as np
 import pandas as pd
-import utils
+#import utils
+from utils import utils
 import os
 import time
-import evaluate
+#import evaluate
+from evasion_attack import evaluate
 
 from art.estimators.classification import PyTorchClassifier
-from art.attacks.evasion import FastGradientMethod, DeepFool, CarliniL2Method, UniversalPerturbation, ProjectedGradientDescent, BasicIterativeMethod, Wasserstein
+from art.attacks.evasion import FastGradientMethod, DeepFool, CarliniL2Method, UniversalPerturbation, ProjectedGradientDescent, BasicIterativeMethod, AutoProjectedGradientDescent
 
 def generate_attack(model, data_loader, input_shape, lr, nb_class, attack_name, eps):
     """selecting and generate adversarial attack
@@ -39,7 +41,7 @@ def generate_attack(model, data_loader, input_shape, lr, nb_class, attack_name, 
         loss=loss,
         optimizer=opt,
         #clip_values=[0,1],
-        input_shape=input_shape,
+        input_shape=(3, input_shape[0], input_shape[0]),
         nb_classes=nb_class
     )
     
@@ -86,8 +88,8 @@ def __get_adv_attack(attack_name, data_loader, classifier, eps):
         attack = ProjectedGradientDescent(estimator=classifier, eps=eps, batch_size=32)    
     elif attack_name == "UAP":
         attack = UniversalPerturbation(classifier=classifier, attacker="pgd", eps=eps, max_iter=10, batch_size=32)
-    elif attack_name == "Wasserstein":
-        attack = Wasserstein(estimator=classifier, eps=eps, max_iter=10, batch_size=32)
+    elif attack_name == "Auto":
+        attack = AutoProjectedGradientDescent(estimator=classifier, eps=eps, batch_size=32, max_iter=10)
     
     adv_attack = attack.generate(x=images)
     
