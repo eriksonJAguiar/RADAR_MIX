@@ -548,32 +548,26 @@ def manifold_visualization(weights_path, model_name, dataset_name, attack_title,
     
     tnse_embeddings = tsne_visualizer(model=model,
                                       model_name=model_name,
-                                      nb_class=nb_class,
                                       images_target=images_target)
     
     tnse_embeddings_adv = tsne_visualizer(model=model,
                                       model_name=model_name,
-                                      nb_class=nb_class,
                                       images_target=images_adv_target)
     
     tnse_embeddings_clean_adv = tsne_visualizer(model=model,
                                                 model_name=model_name,
-                                                nb_class=2,
                                                 images_target=clean_adv)
     
     umap_embeddings = umap_visualizer(model=model,
                                       model_name=model_name,
-                                      nb_class=nb_class,
                                       images_target=images_target)
     
     umap_embeddings_adv = umap_visualizer(model=model,
                                           model_name=model_name,
-                                          nb_class=nb_class,
                                           images_target=images_adv_target)
     
     umap_embeddings_clean_adv = umap_visualizer(model=model,
                                                 model_name=model_name,
-                                                nb_class=2,
                                                 images_target=clean_adv)
     
     plot_tsne_umap(features=tnse_embeddings,
