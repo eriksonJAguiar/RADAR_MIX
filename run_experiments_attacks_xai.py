@@ -44,7 +44,7 @@ if __name__ == '__main__':
     batch_size = 32
     lr = 0.001
     models = ["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
-    attacks = ["CW", "Auto"] #["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW", "Auto"] 
+    attacks = ["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW", "Auto"] 
     epsilons = [0.001, 0.01, 0.05, 0.1, 0.5]
     class_names_path = "./dataset/MelanomaDB/class_name.json"
     save_metrics_path = "./metrics"
@@ -60,8 +60,6 @@ if __name__ == '__main__':
         for attack_name in attacks:
             print("Generate attacked images using attack {}...".format(attack_name))
             for eps in epsilons: 
-                if attack_name == "CW" and eps <= 0.1:
-                    continue
                 print("The eps is {}".format(str(eps)))
                 images, adv_images, true_labels = generate_attacks.run_attack(val_attack_dataset=val_attack_dataset, 
                                                                             dataset_name=dataset_name, 
@@ -78,7 +76,7 @@ if __name__ == '__main__':
                 
                 path_to_save = f"./dataset/attacks/{dataset_name}/{attack_name}/{str(eps)}"
                 os.makedirs(path_to_save, exist_ok=True)
-                os.makedirs(os.path.join(path_to_save, "manifolds"), exist_ok=True)
+                #os.makedirs(os.path.join(path_to_save, "manifolds"), exist_ok=True)
                 
                 metrics  = explain_module.run_explainer(weights_path=weights_path, 
                                             model_name=model_name,
@@ -91,26 +89,27 @@ if __name__ == '__main__':
                                             root_save_path=path_to_save)
                 
                 metrics.insert(2, "Attack", attack_name)
-                metrics.insert(3, "Eps", str(eps))
+                metrics.insert(3, "Model", model_name)
+                metrics.insert(4, "Eps", str(eps))
                 
                 metrics_path = os.path.join(save_metrics_path, "xai_metrics.csv")
                 metrics.to_csv(metrics_path, index=False, mode="a", header=False if os.path.exists(metrics_path) else True)
                 
-                explain_module.manifold_visualization(weights_path=weights_path,
-                                                    attack_title=attack_name,
-                                                    dataset_name=dataset_name,
-                                                    model_name=model_name,
-                                                    nb_class=7, 
-                                                    images_target=images,
-                                                    images_adv_target=adv_images, 
-                                                    labels_target=true_labels,
-                                                    class_names_path=class_names_path,
-                                                    root_save_path=os.path.join(path_to_save, "manifolds"))
+                # explain_module.manifold_visualization(weights_path=weights_path,
+                #                                     attack_title=attack_name,
+                #                                     dataset_name=dataset_name,
+                #                                     model_name=model_name,
+                #                                     nb_class=7, 
+                #                                     images_target=images,
+                #                                     images_adv_target=adv_images, 
+                #                                     labels_target=true_labels,
+                #                                     class_names_path=class_names_path,
+                #                                     root_save_path=os.path.join(path_to_save, "manifolds"))
                 
                 
                 
-                torch.cuda.empty_cache()
-                gc.collect()
+                #torch.cuda.empty_cache()
+                #gc.collect()
                 #utils.save_all_adv_image(path_to_save="./dataset/attacks", images_array=adv_images, labels=true_labels, db_name=dataset_name, attack_name=attack_name, model_name=model_name, eps=str(eps))
                 #utils.save_all_adv_image(path_to_save="./dataset/attacks", images_array=adv_images, labels=true_labels, db_name=dataset_name, attack_name="None", model_name=model_name, eps=str(eps))
                 
