@@ -43,8 +43,8 @@ if __name__ == '__main__':
     #2nd define parameters
     batch_size = 32
     lr = 0.001
-    models = ["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
-    attacks = ["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW", "Auto"] 
+    models = ["inceptionv3", "efficientnet", "densenet"] #["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
+    attacks = ["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW"] 
     epsilons = [0.001, 0.01, 0.05, 0.1, 0.5]
     class_names_path = "./dataset/MelanomaDB/class_name.json"
     save_metrics_path = "./metrics"
@@ -60,6 +60,8 @@ if __name__ == '__main__':
         for attack_name in attacks:
             print("Generate attacked images using attack {}...".format(attack_name))
             for eps in epsilons: 
+                if model_name == "inceptionv3" and eps <= 0.1:
+                    continue
                 print("The eps is {}".format(str(eps)))
                 images, adv_images, true_labels = generate_attacks.run_attack(val_attack_dataset=val_attack_dataset, 
                                                                             dataset_name=dataset_name, 
@@ -79,14 +81,14 @@ if __name__ == '__main__':
                 #os.makedirs(os.path.join(path_to_save, "manifolds"), exist_ok=True)
                 
                 metrics  = explain_module.run_explainer(weights_path=weights_path, 
-                                            model_name=model_name,
-                                            dataset_name=dataset_name, 
-                                            nb_class=7, 
-                                            images_target=images,
-                                            images_adv_target=adv_images, 
-                                            labels_target=true_labels,
-                                            class_names_path=class_names_path,
-                                            root_save_path=path_to_save)
+                                                        model_name=model_name,
+                                                        dataset_name=dataset_name, 
+                                                        nb_class=7, 
+                                                        images_target=images,
+                                                        images_adv_target=adv_images, 
+                                                        labels_target=true_labels,
+                                                        class_names_path=class_names_path,
+                                                        root_save_path=path_to_save)
                 
                 metrics.insert(2, "Attack", attack_name)
                 metrics.insert(3, "Model", model_name)
