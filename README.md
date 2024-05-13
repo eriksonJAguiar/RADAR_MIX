@@ -4,7 +4,7 @@ This repository comprehends the source code developed in the **RADAR-MIX** propo
 
 **Authors:** Erikson J. de Aguiar, Caetano Traina Junior, and Agma J. M. Traina
 
-Contents: [[Paper]](), [[Dataset]](https://challenge.isic-archive.com/data/#2018), [[Proposal]](#RADAR-MIX overview), [[Results]](#Results), [[Setup]](#Setup)
+Contents: [[Paper]](), [[Dataset]](https://challenge.isic-archive.com/data/#2018), [[Proposal]](#RADAR-MIX-overview), [[Results]](#Results), [[Setup]](#Setup)
 
 **Conference:**
 
