@@ -23,7 +23,7 @@ This section describes how to reproduce the experiments and their needed configu
 1. Create a Python environment.
 2. 
 
-## Bixtex
+## Bibtex
 
 
 
