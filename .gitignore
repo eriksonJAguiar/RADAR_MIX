@@ -5,7 +5,6 @@ metrics_version1/*
 __pycache__
 .vscode
 .pytest_cache
-*.png
 *.out
 test_*
 *.ipynb
