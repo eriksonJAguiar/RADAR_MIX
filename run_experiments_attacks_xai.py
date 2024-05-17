@@ -43,7 +43,7 @@ if __name__ == '__main__':
     #2nd define parameters
     batch_size = 32
     lr = 0.001
-    models = ["inceptionv3", "efficientnet", "densenet"] #["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
+    models = ["resnet50", "vgg16","vgg19","inceptionv3", "efficientnet", "densenet"]
     attacks = ["FGSM", "BIM", "PGD", "DeepFool", "UAP", "CW"] 
     epsilons = [0.001, 0.01, 0.05, 0.1, 0.5]
     class_names_path = "./dataset/MelanomaDB/class_name.json"

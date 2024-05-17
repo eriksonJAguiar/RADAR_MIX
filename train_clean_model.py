@@ -96,25 +96,7 @@ if __name__ == '__main__':
 
     print(f"Number of class: {str(num_class)}")
     
-    #for exp_num in range(number_experiments):
-    #print(f"Starting experiment {number_experiments+1}")
-        
-        #models selected
-        # arquitetures_pretrained = {
-        #                         "resnet50" : models_load.make_model_pretrained("resnet50", num_class),
-        #                         #"resnet18" : models_load.make_model_pretrained("resnet18", num_class),
-        #                         "densenet" : models_load.make_model_pretrained("densenet", num_class),
-        #                         "vgg16" : models_load.make_model_pretrained("vgg16", num_class),
-        #                         "vgg19" : models_load.make_model_pretrained("vgg19", num_class),
-        #                         #"efficientnet" : models_load.make_model_pretrained("efficientnet", num_class),
-        #                         "inceptionv3" : models_load.make_model_pretrained("inceptionv3", num_class),
-        #                     }
-        
-        #model_config = models_load.make_model_pretrained(model_name, num_class)
-        
-        #train_model = {}
-        #test_model = {}
-        #for model_name, model_config in arquitetures_pretrained.items():
+
     model_config = models_load.make_model_pretrained(model_name, num_class, is_pretrained=is_pretrained)
     print("\nNetwork: "+ model_name + " is training...\n")
     if not kfold is None:
@@ -139,11 +121,8 @@ if __name__ == '__main__':
                                               metrics_save_path="./metrics", 
                                               num_class=num_class,
                                               is_per_class=is_per_class)
-                    
-    #results_metrics = pd.concat([results_metrics, results])
-    #results_metrics["fold"] = exp_num
-                
-    print(results)
+  
+
     if os.path.exists("./metrics/results_{}.csv".format(database_name)):
         results.to_csv("./metrics/results_{}.csv".format(database_name), mode="a", header=None)
     else:
