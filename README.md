@@ -4,7 +4,7 @@ This repository comprehends the source code developed in the **RADAR-MIX** propo
 
 **Authors:** Erikson J. de Aguiar, Caetano Traina Junior, and Agma J. M. Traina
 
-Contents: [[Paper]](https://ieeexplore.ieee.org/abstract/document/10600758), [[Dataset]](https://challenge.isic-archive.com/data/#2018), [[Proposal]](#RADAR-MIX-overview), [[Results]](#Results), [[Quicstart]](#Quickstart), [[Bibtex]](#Bibtex)
+Contents: [[Paper]](https://ieeexplore.ieee.org/abstract/document/10600758), [[Dataset]](https://challenge.isic-archive.com/data/#2018), [[Quickstart]](#Quickstart), [[Bibtex]](#Bibtex)
 
 **Conference: IEEE 37th Symposium on Computer-Based Medical Systems (CBMS)**
 
@@ -53,11 +53,16 @@ python run_experiments_attacks_xai.py -dm dataset_name -d dataset_path -dv datas
 If you use this repository, please cite the following paper:
 
 ```
-@inproceedings{aguiar2023,
-  title={RADAR-MIX: How to Uncover Adversarial Attacks in Medical Image Analysis through Explainability},
-  author={Erikson J. de Aguiar, Caetano Traina Junior, and Agma J. M. Traina},
-  booktitle={IEEE 37th Symposium on Computer-Based Medical Systems (CBMS)},
-  year={2023}
+@inproceedings{Aguiar2024,
+  title = {RADAR-MIX: How to Uncover Adversarial Attacks in Medical Image Analysis through Explainability},
+  url = {http://dx.doi.org/10.1109/CBMS61543.2024.00078},
+  DOI = {10.1109/cbms61543.2024.00078},
+  booktitle = {2024 IEEE 37th International Symposium on Computer-Based Medical Systems (CBMS)},
+  publisher = {IEEE},
+  author = {De Aguiar,  Erikson J. and Traina,  Caetano and Traina,  Agma J. M.},
+  year = {2024},
+  month = jun,
+  pages = {436–441}
 }
 ```
 
